@@ -1,0 +1,8 @@
+pandas
+numpy==1.18.5
+tqdm
+scikit-learn
+xgboost
+joblib
+tensorflow==2.3.0
+matplotlib
