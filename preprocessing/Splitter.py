@@ -13,14 +13,28 @@ class Splitter:
         self.target_columns = [] if target_columns is None else target_columns
 
     def get_split(self, x: pd.DataFrame, group_column: Optional[str] = None):
-        if self.filter_targets and len(self.target_columns) > 0:
-            non_zero_targets = np.sum(x[self.target_columns].values, axis=1)
-            x = x[non_zero_targets > 0]
-
         if group_column is not None:
             groups = x[group_column]
         else:
             groups = x.index
+
+        if self.filter_targets and len(self.target_columns) > 0:
+            values = np.unique(groups)
+            non_zero = []
+            groups = []
+            for value in values:
+                if group_column is not None:
+                    temp_value = x[x[group_column] == value]
+                else:
+                    temp_value = x.loc[[value]]
+
+                sum_result = np.sum(np.sum(temp_value[self.target_columns]))
+                non_zero.extend([sum_result] * len(temp_value))
+                if sum_result > 0:
+                    groups.extend([value] * len(temp_value))
+            non_zero = np.array(non_zero)
+
+            x = x[non_zero > 0]
 
         train_idx, test_idx = next(self.group_splitter.split(x, groups=groups))
         return x.iloc[train_idx], x.iloc[test_idx]
